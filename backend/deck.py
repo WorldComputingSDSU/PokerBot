@@ -19,7 +19,7 @@ class Card:
       """
       Return a readable version of card for CLI printout
       """
-      return self.rank + self.suit
+      return f"{self.rank} of {self.suit}"
 
    def __repr__(self):
       """
