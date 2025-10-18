@@ -1,50 +1,53 @@
-     
-def evalutate_hand(hand):
+"""
+File: hand_evaluator.py
+Author: Luis Villalon
+Created: 10/18/2025
+Description: Determines the strength of poker hand.
+"""
+
+from collections import Counter     
+
+def evaluateHand(hand: list) -> tuple[int, int]:
    """
-   hand_rank: A number representing the category
-      - 1: Royal Flush
-      - 2: Straight Flush
-      - 3: Four of a Kind
-      - 4: Full House
-      - 5: Flush
-      - 6: Straight
-      - 7: Three of a Kind
-      - 8: Two Pair
-      - 9: Pair
-      - 10: High Card
+   Evaluates the strength of a poker hand.
+
+   Parameters:
+      hand (list): List of Card objects representing the player's hand.
+
+   Returns:
+      tuple: (Numerical score representing the hand's strength, Numerical score of the strongest card in the hand)
    """
-   hand_rank = 0
-   """
-   high_card_value: The value of the strongest card in that hand (to compare ties)
-      - "2": 2,
-      - "3": 3,
-      - "4": 4,
-      - "5": 5,
-      - "6": 6,
-      - "7": 7,
-      - "8": 8,
-      - "9": 9,
-      - "10": 10,
-      - "J": 11,
-      - "Q": 12,
-      - "K": 13,
-      - "A": 14
-   """      
-   high_card_value = 0
-   """
-   list_of_ranks: list of rank values in the hand
-   """
-   list_of_ranks = []
-   """
-   list_of_suita: list of suits in the hand
-   """   
-   list_of_suits = []
+   handRank = 0 
+   highCardValue = 0 
+   listOfRanks = [] 
+   listOfSuits = [] 
+   hand.sort(key=lambda card: card.getValue()) # Sort (least to greatest) the cards based on their rank value returned by getValue()
    for i in hand:
-      list_of_ranks.append(i.getValue())
-      list_of_suits.append(i.suit)
-
-
-
-
-   return (hand_rank, high_card_value)
-
+      listOfRanks.append(i.getValue())
+      listOfSuits.append(i.suit)
+   rankCounts = Counter(listOfRanks) # Counts the number of times a rank appears in a hand
+   isFlush = len(set(listOfSuits)) == 1 # Check for a Flush: five cards of the same suit, not in sequence
+   isStraight = all(listOfRanks[i] + 1 == listOfRanks[i + 1] for i in range(len(listOfRanks) - 1)) # Check for a Straight: five non-suited cards in sequence
+   isRoyal = listOfRanks == [10, 11, 12, 13, 14]
+   if isFlush and isRoyal:
+      handRank = 9
+   elif isFlush and isStraight:
+      handRank = 8
+   elif 4 in rankCounts.values():
+      handRank = 7
+   elif 3 in rankCounts.values() and 2 in rankCounts.values():
+      handRank = 6     
+   elif isFlush:
+      handRank = 5
+   elif isStraight:
+      handRank = 4
+   elif 3 in rankCounts.values():
+      handRank = 3        
+   elif list(rankCounts.values()).count(2) == 2:
+      handRank = 2
+   elif 2 in rankCounts.values():
+      handRank = 1      
+   else:
+      handRank = 0
+   highCardValue = max(listOfRanks) # The highest ranking card in the hand
+   return (handRank, highCardValue)
