@@ -57,7 +57,7 @@ class Card:
       """
 
       def __init__(self):
-         suits = ["H", "D", "C", "S"]
+         suits = ["Hearts", "Diamonds", "Clubs", "Spades"]
          ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
          self.cards = [Card(rank, suit) for rank in ranks for suit in suits]
 
@@ -65,8 +65,8 @@ class Card:
          """ shuffle the deck randomly"""
          random.shuffle(self.cards)
 
-      def deal(self, n=1):
-         """ deal n cards from the deck
+      def draw(self, n=1):
+         """ draw n cards from the deck
          returns a list if n > 1, otherwise returns a single card
          """
          if len(self.cards) < n:
