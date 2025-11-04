@@ -45,30 +45,3 @@ def logGameResult(playerHand: list, botHand: list, playerAction: str, botAction:
          writer.writerow(["Player Hand", "Bot Hand", "Player Action", "Bot Action", "Winner"])
       writer.writerow([playerHandStr, botHandStr, playerAction, botAction, winner])
 
-
-if __name__ == "__main__":
-   # ====== TEST SECTION ======
-   # Create some sample Card objects to simulate a round result
-   playerHand = [
-      Card("A", "Hearts"),
-      Card("K", "Hearts"),
-      Card("10", "Hearts"),
-      Card("J", "Hearts"),
-      Card("Q", "Hearts")
-   ]
-
-   botHand = [
-      Card("9", "Clubs"),
-      Card("9", "Spades"),
-      Card("9", "Diamonds"),
-      Card("3", "Hearts"),
-      Card("3", "Clubs")
-   ]
-
-   playerAction = "RAISE"
-   botAction = "CALL"
-   winner = "Player"
-
-   # Log the result
-   logGameResult(playerHand, botHand, playerAction, botAction, winner)
-   print("✅ Round result logged successfully! Check data/hands.csv.")
