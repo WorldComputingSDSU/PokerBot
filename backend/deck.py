@@ -2,12 +2,17 @@
 File: deck.py
 Author: Jacob Silva
 Created: 10/12/2025
-Description: Contains the Card and Deck classes
+Description: Contains the playingCard and cardDeck classes along with deck-related errors.
 """
 
 import random
 
-class Card:
+
+class emptyDeckError(Exception):
+   """Raised when a deck does not contain enough cards for the requested operation."""
+   pass
+
+class playingCard:
    """
    Represents a single playing card rank and suit (10 of Hearts)
    """
@@ -50,40 +55,40 @@ class Card:
       return rankValues.get(self.rank,0)
 
 
-   class Deck:
+class cardDeck:
+   """
+   Represents a deck of 52 playing cards
+   handles shuffling and drawing cards
+   """
+
+   def __init__(self):
+      suits = ["Hearts", "Diamonds", "Clubs", "Spades"]
+      ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+      # Pre-build a standard 52-card set so we can reshuffle or reset quickly.
+      self.cards = [playingCard(rank, suit) for rank in ranks for suit in suits]
+
+   def shuffle(self):
+      """ shuffle the deck randomly"""
+      random.shuffle(self.cards)
+
+   def draw(self, n=1):
+      """ draw n cards from the deck
+      returns a list if n > 1, otherwise returns a single card
       """
-      Represents a deck of 52 playing cards
-      handles shuffling and drawing cards
-      """
+      if len(self.cards) < n:
+         # The caller will reshuffle if we notify them the deck ran dry.
+         raise emptyDeckError("Not enough cards in the deck to draw.")
+      drawn = [self.cards.pop() for _ in range(n)]
+      return drawn[0] if n == 1 else drawn
+   
+   def burn(self, n=1):
+      """ burn n cards from the deck"""
+      if len(self.cards) < n:
+         raise emptyDeckError("Not enough cards in the deck to burn.")
+      for _ in range(n):
+         self.cards.pop()
 
-      def __init__(self):
-         suits = ["Hearts", "Diamonds", "Clubs", "Spades"]
-         ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
-         self.cards = [Card(rank, suit) for rank in ranks for suit in suits]
-
-      def shuffle(self):
-         """ shuffle the deck randomly"""
-         random.shuffle(self.cards)
-
-      def draw(self, n=1):
-         """ draw n cards from the deck
-         returns a list if n > 1, otherwise returns a single card
-         """
-         if len(self.cards) < n:
-            raise ValueError("Not enough cards in the deck")
-         drawn = [self.cards.pop() for _ in range(n)]
-         return drawn[0] if n == 1 else drawn
-      
-      def burn(self, n=1):
-         """ burn n cards from the deck"""
-         if len(self.cards) < n:
-            raise ValueError("Not enough cards in the deck")
-         for _ in range(n):
-            self.cards.pop()
-
-      def reset(self):
-         """ reset the deck and shuffle"""
-         self.__init__()
-         self.shuffle()
-
-
+   def reset(self):
+      """ reset the deck and shuffle"""
+      self.__init__()
+      self.shuffle()

@@ -8,17 +8,18 @@ Description: Logs the outcomes of each completed poker round to a CSV file
 
 import csv
 import os
-from deck import Card
+from deck import playingCard
 
-def logGameResult(playerHand: list, botHand: list, playerAction: str, botAction: str, winner: str) -> None:
+def logGameResult(playerHand: list, botHand: list, communityCards: list, playerAction: str, botAction: str, winner: str) -> None:
    """
    Logs the result of a completed poker round to 'data/hands.csv'.
 
-   Each row includes the player's hand, bot's hand, actions, and the round winner.
+   Each row includes the player's hand, bot's hand, community cards, actions, and the round winner.
 
    Parameters:
-      playerHand (list): List of Card objects representing the player's hand.
-      botHand (list): List of Card objects representing the bot's hand.
+      playerHand (list): List of playingCard objects representing the player's hand.
+      botHand (list): List of playingCard objects representing the bot's hand.
+      communityCards (list): List of shared community playingCard objects.
       playerAction (str): The final action taken by the player ("FOLD", "CALL", or "RAISE").
       botAction (str): The final action taken by the bot ("FOLD", "CALL", or "RAISE").
       winner (str): Label indicating who won the round ("Player" or "Bot").
@@ -42,6 +43,6 @@ def logGameResult(playerHand: list, botHand: list, playerAction: str, botAction:
    with open(file_path, mode="a", newline="", encoding="utf-8") as file:
       writer = csv.writer(file)
       if not file_exists:
-         writer.writerow(["Player Hand", "Bot Hand", "Player Action", "Bot Action", "Winner"])
-      writer.writerow([playerHandStr, botHandStr, playerAction, botAction, winner])
-
+         writer.writerow(["Player Hand", "Bot Hand", "Community Cards", "Player Action", "Bot Action", "Winner"])
+      communityStr = ", ".join(str(card) for card in communityCards)
+      writer.writerow([playerHandStr, botHandStr, communityStr, playerAction, botAction, winner])

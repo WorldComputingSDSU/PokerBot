@@ -1,0 +1,12 @@
+Player Hand,Bot Hand,Player Action,Bot Action,Winner
+"6 of Hearts, 10 of Hearts","8 of Clubs, A of Hearts",CALL,FOLD,Player
+"8 of Hearts, Q of Hearts","5 of Hearts, J of Clubs",CALL,CALL,Player
+"3 of Hearts, 4 of Clubs","5 of Diamonds, 6 of Hearts",CALL,CALL,Bot
+"2 of Spades, 7 of Diamonds","4 of Clubs, 10 of Clubs",CALL,RAISE 73,Bot
+"A of Hearts, 2 of Spades","7 of Hearts, Q of Spades","5 of Diamonds, 2 of Hearts, 3 of Diamonds, 3 of Spades, 7 of Spades",FOLD,FOLD,Player
+"3 of Spades, J of Clubs","K of Spades, A of Diamonds",CALL,RAISE 41,Bot
+"10 of Diamonds, Q of Clubs","6 of Diamonds, 6 of Hearts","8 of Diamonds, 7 of Diamonds, 2 of Clubs, 10 of Hearts, 3 of Clubs",CALL,FOLD,Player
+"9 of Diamonds, J of Spades","5 of Clubs, 6 of Diamonds","Q of Hearts, 9 of Spades, K of Spades, 5 of Diamonds, A of Diamonds",FOLD,RAISE 70,Tie
+"4 of Diamonds, A of Hearts","4 of Clubs, 5 of Spades","J of Diamonds, 10 of Spades, K of Hearts, 6 of Diamonds, Q of Diamonds",CALL,RAISE 56,Player
+"2 of Spades, 6 of Diamonds","6 of Clubs, J of Hearts","K of Diamonds, 3 of Hearts, 7 of Diamonds, 7 of Clubs, J of Spades",FOLD,FOLD,Bot
+"9 of Hearts, 10 of Spades","9 of Clubs, A of Hearts","K of Clubs, 7 of Spades, Q of Hearts, 8 of Hearts, A of Diamonds",CALL,FOLD,Bot
