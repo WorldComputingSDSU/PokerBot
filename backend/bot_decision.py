@@ -28,7 +28,7 @@ def botDecision() -> tuple[str, float]:
    choice = random.choice(options)
 
    if choice == "RAISE":
-      raise_amount = random.randint(10, 50)SHo
+      raise_amount = random.randint(10, 50)
       return ("RAISE", raise_amount)
    else:
       return (choice, 0)
