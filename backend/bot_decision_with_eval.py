@@ -11,6 +11,8 @@ Description: Implements a smarter decision-making system for the bot.
 import random
 from hand_evaluator import evaluateHand
 
+from ml.predict_win_rate import predictWinRate
+
 def botDecisionWithEval(botHand: list) -> tuple[str, float]:
    """
    Makes a decision for the bot based on the strength of its evaluated hand.
@@ -81,3 +83,8 @@ def botDecisionWithEval(botHand: list) -> tuple[str, float]:
       decision = ("RAISE", random.randint(150, 200))
 
    return decision
+
+
+#--EXAMPLE USE FOR predictWinRate()--#
+# winRate = predictWinRate(player.hand)
+# print(f"Predicted win rate: {winRate:.2f}")
