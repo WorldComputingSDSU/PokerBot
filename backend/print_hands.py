@@ -10,8 +10,8 @@ def printHands(playerHand: list, botHand: list, hideBot: bool = False):
    Displays the player's and bot's cards in the terminal in a readable format after each round.
 
    Parameters:
-      playerHand (list): List of Card objects representing the player's hand.
-      botHand (list): List of Card objects representing the bot's hand.
+      playerHand (list): List of playingCard objects representing the player's hand.
+      botHand (list): List of playingCard objects representing the bot's hand.
       hideBot (bool): Boolean variable representing whether or not the bot's hand should be displayed.
 
    Returns:
@@ -19,6 +19,6 @@ def printHands(playerHand: list, botHand: list, hideBot: bool = False):
    """    
    print("Your hand:", ", ".join(str(card) for card in playerHand))   
    if hideBot:
-      print("Bot hand: [Hidden Card],", botHand[1])
+      print("Bot hand: [Hidden Card], [Hidden Card]")
    else:
       print("Bot hand:", ", ".join(str(card) for card in botHand))

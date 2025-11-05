@@ -7,34 +7,35 @@ Description: Handles terminal-based user input allowing the player to choose bet
 
 def getPlayerAction() -> tuple[str, float]:
    """
-   Prompts the player to choose an action: "fold", "call", or "raise".
-
-   Parameters:
-      None
+   Prompts the player to choose an action: fold, call, or raise.
 
    Returns:
-      tuple[str, float]: 
-         The tuple represents the player action and associated amount.
-         - ("FOLD", 0) or ("CALL", 0) when the player chooses fold or call.
-         - ("RAISE", amount) when the player chooses to raise with a numeric amount.
+      tuple[str, float]:
+         - ("FOLD", 0) or ("CALL", 0) for fold/call.
+         - ("RAISE", amount) when the player raises.
    """
-   while True:
-      userInput = input("Choose an action: [f]old, [c]all, [r]aise\n").lower()
-      if userInput == "f": 
+   try:
+      choice = input("Choose [1] Fold [2] Call [3] Raise: ").strip()
+      if choice not in {"1", "2", "3"}:
+         raise ValueError("Invalid input. Please choose 1, 2, or 3.")
+
+      if choice == "1":
          print("FOLD")
          return ("FOLD", 0)
-      elif userInput == "c": 
+      if choice == "2":
          print("CALL")
          return ("CALL", 0)
-      elif userInput == "r":
-         while True:
-            amount = input("Enter raise amount: ")
-            if amount.isdigit():
-               amount = int(amount)
-               break
-            else:
-               print("Invalid input. Please enter a numeric whole value.")        
-         print("RAISE:", amount)
-         return ("RAISE", amount)
-      else:
-         print("Invalid input. Try again.")
+
+      # Handle raise workflow
+      amount_input = input("Enter raise amount: ").strip()
+      if not amount_input.isdigit() or int(amount_input) <= 0:
+         raise ValueError("Invalid raise amount. Please enter a positive whole number.")
+
+      amount = int(amount_input)
+      print("RAISE:", amount)
+      return ("RAISE", amount)
+
+   except ValueError as err:
+      print(err)
+      # Recursively prompt again until the user supplies a valid choice.
+      return getPlayerAction()
