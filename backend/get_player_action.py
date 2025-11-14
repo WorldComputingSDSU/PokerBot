@@ -15,14 +15,14 @@ def getPlayerAction() -> tuple[str, float]:
          - ("RAISE", amount) when the player raises.
    """
    try:
-      choice = input("Choose [1] Fold [2] Call [3] Raise: ").strip()
-      if choice not in {"1", "2", "3"}:
+      choice = input("Choose [f]old [c]all [r]aise: ").strip().lower()
+      if choice not in {"f", "c", "r"}:
          raise ValueError("Invalid input. Please choose 1, 2, or 3.")
 
-      if choice == "1":
+      if choice == "f":
          print("FOLD")
          return ("FOLD", 0)
-      if choice == "2":
+      if choice == "c":
          print("CALL")
          return ("CALL", 0)
 

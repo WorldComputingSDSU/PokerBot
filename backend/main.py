@@ -139,6 +139,32 @@ def play_round() -> str:
     botActionStr = _format_action(botAction)
     print(f"Bot action: {botActionStr}")
 
+
+   # Jacob: Fixed game folding bug that would replay the rest of the game even after a fold
+    if playerAction[0] == "FOLD":
+        print("\nYou folded. Bot wins.")
+        logGameResult(
+            playerHand,
+            botHand,
+            communityCards,
+            playerActionStr,
+            botActionStr,
+            "Bot",
+        )
+        return "Bot"
+
+    if botAction[0] == "FOLD":
+        print("\nBot folded. You win.")
+        logGameResult(
+            playerHand,
+            botHand,
+            communityCards,
+            playerActionStr,
+            botActionStr,
+            "Player",
+        )
+        return "Player"
+
     # Flop
     safe_burn(deck)
     communityCards.extend(safe_draw(deck, 3))
