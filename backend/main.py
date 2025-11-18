@@ -131,6 +131,11 @@ def play_round() -> tuple[str, dict]:
 
     roundData = {}   # Default round data dictionary
 
+    # Tracking variables
+    playerFlopAction = botFlopAction = ""
+    playerTurnAction = botTurnAction = ""
+    playerRiverAction = botRiverAction = ""    
+
     printHands(playerHand, botHand, hideBot=True)
     _print_board("Board", communityCards)
 
@@ -154,7 +159,7 @@ def play_round() -> tuple[str, dict]:
     if playerAction[0] == "FOLD":
         print("\nYou folded. Bot wins.")
         winner = "Bot"
-        rounData = _build_round_data(
+        roundData = _build_round_data(
             playerHand, botHand, communityCards,
             playerActionStr, botActionStr, winner
         )
@@ -171,7 +176,7 @@ def play_round() -> tuple[str, dict]:
     if botAction[0] == "FOLD":
         print("\nBot folded. You win.")
         winner = "Player"
-        rounData = _build_round_data(
+        roundData = _build_round_data(
             playerHand, botHand, communityCards,
             playerActionStr, botActionStr, winner
         )        
@@ -196,6 +201,12 @@ def play_round() -> tuple[str, dict]:
     print(f"Estimated player win rate: {playerWinRate:.2f}")
     print(f"Estimated bot win rate: {botWinRate:.2f}")
 
+    # Track flop actions
+    playerFlopAction = _format_action(getPlayerAction())
+    print(f"You chose: {playerFlopAction}")
+    botFlopAction = _format_action(botDecisionWithEval(botHand + communityCards))
+    print(f"Bot action: {botFlopAction}")
+
     # Turn
     safe_burn(deck)
     communityCards.append(safe_draw(deck))
@@ -205,6 +216,13 @@ def play_round() -> tuple[str, dict]:
     botWinRate = predictWinRate(botHand + communityCards)
     print(f"Estimated player win rate: {playerWinRate:.2f}")
     print(f"Estimated bot win rate: {botWinRate:.2f}")
+
+    # Track turn actions
+    playerTurnAction = _format_action(getPlayerAction())
+    print(f"You chose: {playerTurnAction}")
+    botTurnAction = _format_action(botDecisionWithEval(botHand + communityCards))
+    print(f"Bot action: {botTurnAction}")
+
 
     # River
     safe_burn(deck)
@@ -216,6 +234,13 @@ def play_round() -> tuple[str, dict]:
     botWinRate = predictWinRate(botHand + communityCards)
     print(f"Estimated player win rate: {playerWinRate:.2f}")
     print(f"Estimated bot win rate: {botWinRate:.2f}")
+
+    # Track river actions
+    playerRiverAction = _format_action(getPlayerAction())
+    print(f"You chose: {playerRiverAction}")
+    botRiverAction = _format_action(botDecisionWithEval(botHand + communityCards))
+    print(f"Bot action: {botRiverAction}")
+
 
     winner, playerScore, botScore = _compare_hands(
         playerHand + communityCards,
@@ -239,54 +264,77 @@ def play_round() -> tuple[str, dict]:
         winner=winner,
     )
     roundData = _build_round_data(
-      playerHand, botHand, communityCards,
-      playerActionStr, botActionStr, winner,
-      playerScore, botScore
+    playerHand, botHand, communityCards,
+    playerActionStr, botActionStr, winner,
+    playerScore, botScore,
+    playerFlopAction, botFlopAction,
+    playerTurnAction, botTurnAction,
+    playerRiverAction, botRiverAction
     )
+
 
     return winner, roundData
 
-def _build_round_data(playerHand: list, botHand: list, communityCards: list,
-                      playerActionStr: str, botActionStr: str,
-                      winner: str,
-                      playerScore: tuple = None, botScore: tuple = None) -> dict:
-   """
-   Build a dictionary of round information for CSV logging.
+def _build_round_data(
+    playerHand: list,
+    botHand: list,
+    communityCards: list,
+    playerPreflopAction: str,
+    botPreflopAction: str,
+    winner: str,
+    playerScore: tuple = None,
+    botScore: tuple = None,
+    playerFlopAction: str = "",
+    botFlopAction: str = "",
+    playerTurnAction: str = "",
+    botTurnAction: str = "",
+    playerRiverAction: str = "",
+    botRiverAction: str = "",
+) -> dict:
+    """
+    Build a dictionary of round information for CSV logging.
 
-   Parameters:
-      playerHand (list): Player's two hole cards.
-      botHand (list): Bot's two hole cards.
-      communityCards (list): Shared community cards.
-      playerActionStr (str): Final formatted player action.
-      botActionStr (str): Final formatted bot action.
-      winner (str): Round winner label.
-      playerScore (tuple): Player's evaluated hand rank and high card.
-      botScore (tuple): Bot's evaluated hand rank and high card.
+    Parameters:
+        playerHand (list): Player's two hole cards.
+        botHand (list): Bot's two hole cards.
+        communityCards (list): Shared community cards.
+        playerPreflopAction (str): Player's preflop action.
+        botPreflopAction (str): Bot's preflop action.
+        winner (str): Round winner label.
+        playerScore (tuple): Player's evaluated hand rank and high card (optional).
+        botScore (tuple): Bot's evaluated hand rank and high card (optional).
+        playerFlopAction (str): Player's flop action (optional).
+        botFlopAction (str): Bot's flop action (optional).
+        playerTurnAction (str): Player's turn action (optional).
+        botTurnAction (str): Bot's turn action (optional).
+        playerRiverAction (str): Player's river action (optional).
+        botRiverAction (str): Bot's river action (optional).
 
-   Returns:
-      dict: A single row of round data for logging.
-   """
-   playerStrength = HAND_RANK_LABELS.get(playerScore[0], "Unknown") if playerScore else ""
-   botStrength = HAND_RANK_LABELS.get(botScore[0], "Unknown") if botScore else ""
+    Returns:
+        dict: A single row of round data for logging.
+    """
+    playerStrength = HAND_RANK_LABELS.get(playerScore[0], "Unknown") if playerScore else ""
+    botStrength = HAND_RANK_LABELS.get(botScore[0], "Unknown") if botScore else ""
 
-   roundData = {
-      "Player Hand": ", ".join(str(card) for card in playerHand),
-      "Bot Hand": ", ".join(str(card) for card in botHand),
-      "Player Strength": playerStrength,
-      "Bot Strength": botStrength,
-      "Player Preflop Action": playerActionStr,
-      "Bot Preflop Action": botActionStr,
-      "Player Flop Action": "",
-      "Bot Flop Action": "",
-      "Player Turn Action": "",
-      "Bot Turn Action": "",
-      "Player River Action": "",
-      "Bot River Action": "",
-      "Player Balance": "",
-      "Winner": winner
-   }
+    roundData = {
+        "Player Hand": ", ".join(str(card) for card in playerHand),
+        "Bot Hand": ", ".join(str(card) for card in botHand),
+        "Player Strength": playerStrength,
+        "Bot Strength": botStrength,
+        "Player Preflop Action": playerPreflopAction,
+        "Bot Preflop Action": botPreflopAction,
+        "Player Flop Action": playerFlopAction,
+        "Bot Flop Action": botFlopAction,
+        "Player Turn Action": playerTurnAction,
+        "Bot Turn Action": botTurnAction,
+        "Player River Action": playerRiverAction,
+        "Bot River Action": botRiverAction,
+        "Player Balance": "",
+        "Winner": winner,
+    }
 
-   return roundData
+    return roundData
+
 
 
 def main():
