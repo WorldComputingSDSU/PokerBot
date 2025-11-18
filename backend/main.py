@@ -107,12 +107,18 @@ def _print_board(stage: str, community_cards: list) -> None:
     print(f"{stage}: {board_display}")
 
 
-def play_round() -> str:
+def play_round() -> tuple[str, dict]:
     """
     Execute a single round of the CLI game and display win rate estimates.
 
+    Deals hands, evaluates win probabilities, handles player and bot actions, 
+    and determines the winner at showdown. Returns the round outcome and a 
+    structured dictionary containing data for CSV logging.
+
     Returns:
-        str: Winner label.
+        tuple[str, dict]:
+            - str: Winner label of the round ("Player", "Bot", or "Tie").
+            - dict: Round data including hand details, strengths, actions, and winner.
     """
     deck = cardDeck()
     deck.shuffle()  # Fresh shuffle at the top of every hand keeps play random.
@@ -132,6 +138,7 @@ def play_round() -> str:
     print(f"Estimated player win rate: {playerWinRate:.2f}")
     print(f"Estimated bot win rate: {botWinRate:.2f}")
 
+    # Player and bot preflop actions
     playerAction = getPlayerAction()
     playerActionStr = _format_action(playerAction)
     print(f"You chose: {playerActionStr}")
@@ -144,27 +151,37 @@ def play_round() -> str:
    # Jacob: Fixed game folding bug that would replay the rest of the game even after a fold
     if playerAction[0] == "FOLD":
         print("\nYou folded. Bot wins.")
+        winner = "Bot"
+        rounData = _build_round_data(
+            playerHand, botHand, communityCards,
+            playerActionStr, botActionStr, winner
+        )
         logGameResult(
             playerHand,
             botHand,
             communityCards,
             playerActionStr,
             botActionStr,
-            "Bot",
+            winner,
         )
-        return "Bot"
+        return winner, roundData
 
     if botAction[0] == "FOLD":
         print("\nBot folded. You win.")
+        winner = "Player"
+        rounData = _build_round_data(
+            playerHand, botHand, communityCards,
+            playerActionStr, botActionStr, winner
+        )        
         logGameResult(
             playerHand,
             botHand,
             communityCards,
             playerActionStr,
             botActionStr,
-            "Player",
+            winner,
         )
-        return "Player"
+        return winner, roundData
 
     # Flop
     safe_burn(deck)
@@ -219,8 +236,13 @@ def play_round() -> str:
         botAction=botActionStr,
         winner=winner,
     )
+   roundData = _build_round_data(
+      playerHand, botHand, communityCards,
+      playerActionStr, botActionStr, winner,
+      playerScore, botScore
+   )
 
-    return winner
+    return winner, roundData
 
 
 def main():
