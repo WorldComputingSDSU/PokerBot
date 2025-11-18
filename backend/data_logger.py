@@ -41,7 +41,7 @@ class PokerDataLogger:
 
       if enableLogging:
          # Build a unique timestamped filename: poker_bot_MMD_HH_MM.csv
-         timestemp = datetime.now().strftime("%m%d_%H_%M")
+         timestamp = datetime.now().strftime("%m%d_%H_%M")
          os.makedirs("data", exist_ok=True)
          self.filePath = os.path.join("data", f"poker_bot_{timestamp}.csv")
          self._writeHeader()
@@ -53,7 +53,7 @@ class PokerDataLogger:
       Returns:
          None
       """
-       header = [
+      header = [
          "Player Hand", "Bot Hand",
          "Player Strength", "Bot Strength",
          "Player Preflop Action", "Bot Preflop Action",

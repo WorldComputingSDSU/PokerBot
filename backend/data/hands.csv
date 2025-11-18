@@ -1,2 +1,6 @@
 Player Hand,Bot Hand,Community Cards,Player Action,Bot Action,Winner
 "9 of Hearts, 4 of Hearts","5 of Diamonds, K of Diamonds","K of Hearts, A of Diamonds, 10 of Hearts, 6 of Hearts, J of Spades",RAISE 50,RAISE 62,Player
+"2 of Clubs, 6 of Hearts","3 of Hearts, 5 of Spades",,FOLD,FOLD,Bot
+"Q of Clubs, 2 of Diamonds","9 of Hearts, A of Spades",,CALL,FOLD,Player
+"7 of Clubs, Q of Spades","8 of Spades, K of Spades",,FOLD,RAISE 63,Bot
+"7 of Diamonds, 5 of Diamonds","10 of Diamonds, K of Spades",,RAISE 23,FOLD,Player

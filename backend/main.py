@@ -129,6 +129,8 @@ def play_round() -> tuple[str, dict]:
     botHand = safe_draw(deck, 2)
     communityCards: list = []
 
+    roundData = {}   # Default round data dictionary
+
     printHands(playerHand, botHand, hideBot=True)
     _print_board("Board", communityCards)
 
@@ -236,13 +238,55 @@ def play_round() -> tuple[str, dict]:
         botAction=botActionStr,
         winner=winner,
     )
-   roundData = _build_round_data(
+    roundData = _build_round_data(
       playerHand, botHand, communityCards,
       playerActionStr, botActionStr, winner,
       playerScore, botScore
-   )
+    )
 
     return winner, roundData
+
+def _build_round_data(playerHand: list, botHand: list, communityCards: list,
+                      playerActionStr: str, botActionStr: str,
+                      winner: str,
+                      playerScore: tuple = None, botScore: tuple = None) -> dict:
+   """
+   Build a dictionary of round information for CSV logging.
+
+   Parameters:
+      playerHand (list): Player's two hole cards.
+      botHand (list): Bot's two hole cards.
+      communityCards (list): Shared community cards.
+      playerActionStr (str): Final formatted player action.
+      botActionStr (str): Final formatted bot action.
+      winner (str): Round winner label.
+      playerScore (tuple): Player's evaluated hand rank and high card.
+      botScore (tuple): Bot's evaluated hand rank and high card.
+
+   Returns:
+      dict: A single row of round data for logging.
+   """
+   playerStrength = HAND_RANK_LABELS.get(playerScore[0], "Unknown") if playerScore else ""
+   botStrength = HAND_RANK_LABELS.get(botScore[0], "Unknown") if botScore else ""
+
+   roundData = {
+      "Player Hand": ", ".join(str(card) for card in playerHand),
+      "Bot Hand": ", ".join(str(card) for card in botHand),
+      "Player Strength": playerStrength,
+      "Bot Strength": botStrength,
+      "Player Preflop Action": playerActionStr,
+      "Bot Preflop Action": botActionStr,
+      "Player Flop Action": "",
+      "Bot Flop Action": "",
+      "Player Turn Action": "",
+      "Bot Turn Action": "",
+      "Player River Action": "",
+      "Bot River Action": "",
+      "Player Balance": "",
+      "Winner": winner
+   }
+
+   return roundData
 
 
 def main():
@@ -258,7 +302,7 @@ def main():
     print("Starting PokerBot CLI. Press Ctrl+C to exit.")
 
     # Prompt user to enable logging
-    enableLogging = input("Would you like to start a logging session? [y/N]: ").strip.lower() == "y"
+    enableLogging = input("Would you like to start a logging session? [y/N]: ").strip().lower() == "y"
     logger = PokerDataLogger(enableLogging = enableLogging)
 
     try:
