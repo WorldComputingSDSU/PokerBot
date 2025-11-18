@@ -8,6 +8,7 @@ Description: Command-line entry point that runs one or more PokerBot rounds.
 from pathlib import Path
 import sys
 from itertools import combinations
+from data_logger import PokerDataLogger
 
 # Ensure repository root is on sys.path so ml package imports resolve when running this file directly.
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -223,10 +224,29 @@ def play_round() -> str:
 
 
 def main():
+    """
+    Entry point for PokerBot CLI.
+
+    Prompts the user to being a logging session, initalizes a PokerDataLogger
+    instance if requested, and manages the game loop until the player exits.
+
+    Returns:
+        None
+    """
     print("Starting PokerBot CLI. Press Ctrl+C to exit.")
+
+    # Prompt user to enable logging
+    enableLogging = input("Would you like to start a logging session? [y/N]: ").strip.lower() == "y"
+    logger = PokerDataLogger(enableLogging = enableLogging)
+
     try:
         while True:
-            play_round()
+            winner, roundData = play_round()
+
+            # Append one row of round data if logging is enabled
+            if enableLogging:
+                logger.appendRound(roundData)
+            
             choice = input("Play another round? [Y/n]\n").strip().lower()
             if choice == "n":
                 break
