@@ -1,0 +1,3 @@
+Player Hand,Bot Hand,Player Strength,Bot Strength,Player Preflop Action,Bot Preflop Action,Player Flop Action,Bot Flop Action,Player Turn Action,Bot Turn Action,Player River Action,Bot River Action,Player Balance,Winner
+"5 of Spades, 2 of Hearts","4 of Clubs, 5 of Hearts",,,FOLD,CALL,,,,,,,,Bot
+"8 of Clubs, 9 of Hearts","10 of Clubs, J of Diamonds",High Card,One Pair,CALL,CALL,CALL,FOLD,CALL,CALL,CALL,FOLD,,Bot

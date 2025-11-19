@@ -8,6 +8,7 @@ Description: Command-line entry point that runs one or more PokerBot rounds.
 from pathlib import Path
 import sys
 from itertools import combinations
+from data_logger import PokerDataLogger
 
 # Ensure repository root is on sys.path so ml package imports resolve when running this file directly.
 ROOT_DIR = Path(__file__).resolve().parent.parent
@@ -106,12 +107,18 @@ def _print_board(stage: str, community_cards: list) -> None:
     print(f"{stage}: {board_display}")
 
 
-def play_round() -> str:
+def play_round() -> tuple[str, dict]:
     """
     Execute a single round of the CLI game and display win rate estimates.
 
+    Deals hands, evaluates win probabilities, handles player and bot actions, 
+    and determines the winner at showdown. Returns the round outcome and a 
+    structured dictionary containing data for CSV logging.
+
     Returns:
-        str: Winner label.
+        tuple[str, dict]:
+            - str: Winner label of the round ("Player", "Bot", or "Tie").
+            - dict: Round data including hand details, strengths, actions, and winner.
     """
     deck = cardDeck()
     deck.shuffle()  # Fresh shuffle at the top of every hand keeps play random.
@@ -122,6 +129,13 @@ def play_round() -> str:
     botHand = safe_draw(deck, 2)
     communityCards: list = []
 
+    roundData = {}   # Default round data dictionary
+
+    # Tracking variables
+    playerFlopAction = botFlopAction = ""
+    playerTurnAction = botTurnAction = ""
+    playerRiverAction = botRiverAction = ""    
+
     printHands(playerHand, botHand, hideBot=True)
     _print_board("Board", communityCards)
 
@@ -131,6 +145,7 @@ def play_round() -> str:
     print(f"Estimated player win rate: {playerWinRate:.2f}")
     print(f"Estimated bot win rate: {botWinRate:.2f}")
 
+    # Player and bot preflop actions
     playerAction = getPlayerAction()
     playerActionStr = _format_action(playerAction)
     print(f"You chose: {playerActionStr}")
@@ -143,27 +158,37 @@ def play_round() -> str:
    # Jacob: Fixed game folding bug that would replay the rest of the game even after a fold
     if playerAction[0] == "FOLD":
         print("\nYou folded. Bot wins.")
+        winner = "Bot"
+        roundData = _build_round_data(
+            playerHand, botHand, communityCards,
+            playerActionStr, botActionStr, winner
+        )
         logGameResult(
             playerHand,
             botHand,
             communityCards,
             playerActionStr,
             botActionStr,
-            "Bot",
+            winner,
         )
-        return "Bot"
+        return winner, roundData
 
     if botAction[0] == "FOLD":
         print("\nBot folded. You win.")
+        winner = "Player"
+        roundData = _build_round_data(
+            playerHand, botHand, communityCards,
+            playerActionStr, botActionStr, winner
+        )        
         logGameResult(
             playerHand,
             botHand,
             communityCards,
             playerActionStr,
             botActionStr,
-            "Player",
+            winner,
         )
-        return "Player"
+        return winner, roundData
 
     # Flop
     safe_burn(deck)
@@ -176,6 +201,12 @@ def play_round() -> str:
     print(f"Estimated player win rate: {playerWinRate:.2f}")
     print(f"Estimated bot win rate: {botWinRate:.2f}")
 
+    # Track flop actions
+    playerFlopAction = _format_action(getPlayerAction())
+    print(f"You chose: {playerFlopAction}")
+    botFlopAction = _format_action(botDecisionWithEval(botHand + communityCards))
+    print(f"Bot action: {botFlopAction}")
+
     # Turn
     safe_burn(deck)
     communityCards.append(safe_draw(deck))
@@ -185,6 +216,13 @@ def play_round() -> str:
     botWinRate = predictWinRate(botHand + communityCards)
     print(f"Estimated player win rate: {playerWinRate:.2f}")
     print(f"Estimated bot win rate: {botWinRate:.2f}")
+
+    # Track turn actions
+    playerTurnAction = _format_action(getPlayerAction())
+    print(f"You chose: {playerTurnAction}")
+    botTurnAction = _format_action(botDecisionWithEval(botHand + communityCards))
+    print(f"Bot action: {botTurnAction}")
+
 
     # River
     safe_burn(deck)
@@ -196,6 +234,13 @@ def play_round() -> str:
     botWinRate = predictWinRate(botHand + communityCards)
     print(f"Estimated player win rate: {playerWinRate:.2f}")
     print(f"Estimated bot win rate: {botWinRate:.2f}")
+
+    # Track river actions
+    playerRiverAction = _format_action(getPlayerAction())
+    print(f"You chose: {playerRiverAction}")
+    botRiverAction = _format_action(botDecisionWithEval(botHand + communityCards))
+    print(f"Bot action: {botRiverAction}")
+
 
     winner, playerScore, botScore = _compare_hands(
         playerHand + communityCards,
@@ -218,15 +263,104 @@ def play_round() -> str:
         botAction=botActionStr,
         winner=winner,
     )
+    roundData = _build_round_data(
+    playerHand, botHand, communityCards,
+    playerActionStr, botActionStr, winner,
+    playerScore, botScore,
+    playerFlopAction, botFlopAction,
+    playerTurnAction, botTurnAction,
+    playerRiverAction, botRiverAction
+    )
 
-    return winner
+
+    return winner, roundData
+
+def _build_round_data(
+    playerHand: list,
+    botHand: list,
+    communityCards: list,
+    playerPreflopAction: str,
+    botPreflopAction: str,
+    winner: str,
+    playerScore: tuple = None,
+    botScore: tuple = None,
+    playerFlopAction: str = "",
+    botFlopAction: str = "",
+    playerTurnAction: str = "",
+    botTurnAction: str = "",
+    playerRiverAction: str = "",
+    botRiverAction: str = "",
+) -> dict:
+    """
+    Build a dictionary of round information for CSV logging.
+
+    Parameters:
+        playerHand (list): Player's two hole cards.
+        botHand (list): Bot's two hole cards.
+        communityCards (list): Shared community cards.
+        playerPreflopAction (str): Player's preflop action.
+        botPreflopAction (str): Bot's preflop action.
+        winner (str): Round winner label.
+        playerScore (tuple): Player's evaluated hand rank and high card (optional).
+        botScore (tuple): Bot's evaluated hand rank and high card (optional).
+        playerFlopAction (str): Player's flop action (optional).
+        botFlopAction (str): Bot's flop action (optional).
+        playerTurnAction (str): Player's turn action (optional).
+        botTurnAction (str): Bot's turn action (optional).
+        playerRiverAction (str): Player's river action (optional).
+        botRiverAction (str): Bot's river action (optional).
+
+    Returns:
+        dict: A single row of round data for logging.
+    """
+    playerStrength = HAND_RANK_LABELS.get(playerScore[0], "Unknown") if playerScore else ""
+    botStrength = HAND_RANK_LABELS.get(botScore[0], "Unknown") if botScore else ""
+
+    roundData = {
+        "Player Hand": ", ".join(str(card) for card in playerHand),
+        "Bot Hand": ", ".join(str(card) for card in botHand),
+        "Player Strength": playerStrength,
+        "Bot Strength": botStrength,
+        "Player Preflop Action": playerPreflopAction,
+        "Bot Preflop Action": botPreflopAction,
+        "Player Flop Action": playerFlopAction,
+        "Bot Flop Action": botFlopAction,
+        "Player Turn Action": playerTurnAction,
+        "Bot Turn Action": botTurnAction,
+        "Player River Action": playerRiverAction,
+        "Bot River Action": botRiverAction,
+        "Player Balance": "",
+        "Winner": winner,
+    }
+
+    return roundData
+
 
 
 def main():
+    """
+    Entry point for PokerBot CLI.
+
+    Prompts the user to being a logging session, initalizes a PokerDataLogger
+    instance if requested, and manages the game loop until the player exits.
+
+    Returns:
+        None
+    """
     print("Starting PokerBot CLI. Press Ctrl+C to exit.")
+
+    # Prompt user to enable logging
+    enableLogging = input("Would you like to start a logging session? [y/N]: ").strip().lower() == "y"
+    logger = PokerDataLogger(enableLogging = enableLogging)
+
     try:
         while True:
-            play_round()
+            winner, roundData = play_round()
+
+            # Append one row of round data if logging is enabled
+            if enableLogging:
+                logger.appendRound(roundData)
+            
             choice = input("Play another round? [Y/n]\n").strip().lower()
             if choice == "n":
                 break
