@@ -1,0 +1,2 @@
+Player Hand,Bot Hand,Player Strength,Bot Strength,Player Preflop Action,Bot Preflop Action,Player Flop Action,Bot Flop Action,Player Turn Action,Bot Turn Action,Player River Action,Bot River Action,Player Balance,Winner
+"10 of Clubs, J of Hearts","2 of Diamonds, 6 of Hearts",One Pair,High Card,CALL,CALL,RAISE 100,FOLD,FOLD,FOLD,FOLD,CALL,,Player
