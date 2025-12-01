@@ -18,3 +18,24 @@ Player Hand,Bot Hand,Community Cards,Player Action,Bot Action,Winner
 "J of Clubs, 5 of Clubs","7 of Clubs, Q of Hearts",,FOLD,FOLD,Bot
 "5 of Spades, 2 of Hearts","4 of Clubs, 5 of Hearts",,FOLD,CALL,Bot
 "8 of Clubs, 9 of Hearts","10 of Clubs, J of Diamonds","K of Spades, 4 of Spades, A of Clubs, 7 of Spades, J of Clubs",CALL,CALL,Bot
+"4 of Spades, 7 of Clubs","5 of Hearts, K of Clubs",,RAISE 100,FOLD,Player
+"2 of Clubs, 5 of Spades","4 of Clubs, Q of Clubs","10 of Clubs, A of Spades, Q of Hearts, K of Diamonds, K of Clubs",RAISE 100,RAISE 63,Bot
+"7 of Hearts, Q of Spades","4 of Hearts, 10 of Hearts","9 of Diamonds, 3 of Diamonds, 5 of Clubs",CALL,RAISE 75,Bot
+"5 of Clubs, Q of Diamonds","2 of Clubs, 9 of Spades",,,FOLD,Player
+"3 of Clubs, Q of Hearts","9 of Diamonds, 9 of Hearts",,RAISE 200,FOLD,Player
+"5 of Clubs, 10 of Hearts","5 of Hearts, A of Clubs",,,FOLD,Player
+"Q of Clubs, Q of Spades","4 of Clubs, A of Hearts",,RAISE 12,FOLD,Player
+"Q of Clubs, 7 of Clubs","7 of Diamonds, 9 of Hearts",,,FOLD,Player
+"3 of Clubs, A of Hearts","2 of Diamonds, 6 of Hearts",,RAISE 55,FOLD,Player
+"2 of Clubs, 7 of Hearts","5 of Clubs, 5 of Hearts",,RAISE 33,FOLD,Player
+"Q of Clubs, A of Diamonds","4 of Spades, K of Hearts",,CALL,FOLD,Player
+"6 of Diamonds, K of Hearts","2 of Hearts, 8 of Clubs",,,FOLD,Player
+"K of Diamonds, 2 of Clubs","6 of Hearts, J of Diamonds",,RAISE 22,FOLD,Player
+"9 of Clubs, 2 of Hearts","10 of Clubs, 10 of Diamonds","J of Hearts, 6 of Hearts, 4 of Spades, 5 of Diamonds, 9 of Diamonds",RAISE 22,FOLD,Player
+"A of Hearts, 8 of Spades","6 of Spades, K of Spades","10 of Clubs, Q of Hearts, 9 of Spades, Q of Clubs",CALL,RAISE 65,Player
+"6 of Hearts, 5 of Hearts","6 of Diamonds, K of Hearts",,RAISE 100,FOLD,Player
+"Q of Clubs, 10 of Diamonds","6 of Clubs, Q of Spades",,RAISE 44,FOLD,Player
+"K of Hearts, 10 of Diamonds","4 of Diamonds, 5 of Diamonds","9 of Clubs, 5 of Spades, A of Diamonds, 2 of Hearts",CALL,RAISE 91,Player
+"Q of Clubs, 4 of Hearts","4 of Diamonds, 9 of Hearts","8 of Hearts, 10 of Hearts, A of Clubs",RAISE 66,CALL,Bot
+"J of Diamonds, 8 of Hearts","2 of Hearts, 4 of Diamonds",,,FOLD,Player
+"5 of Clubs, J of Spades","8 of Clubs, 6 of Spades",,FOLD,,Bot

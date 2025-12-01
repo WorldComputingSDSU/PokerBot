@@ -148,6 +148,8 @@ def play_round(
 
     roundData = {}
     # Tracking vars for later logging
+    playerActionStr = ""
+    botActionStr = ""
     playerFlopAction = botFlopAction = ""
     playerTurnAction = botTurnAction = ""
     playerRiverAction = botRiverAction = ""
@@ -199,7 +201,7 @@ def play_round(
         if stageWinner == "Player":
             playerBalance += pot
         elif stageWinner == "Bot":
-            botBalance += pot
+         botBalance += pot
         # pot goes to winner, then clears
         potLocal = pot
         pot = 0
@@ -253,11 +255,10 @@ def play_round(
         nonlocal pot
 
         if actor == "player":
-            print(f"\n--- Your turn (Preflop) ---")
+            # No more preflop text here, important for raise logic
             print(f"Amount to call: {amountToCall} | Your stack: {balance} | Pot: {pot}")
             actionName, raiseAmount = getPlayerAction()
         else:
-            print(f"\n--- Bot turn (Preflop) ---")
             # Bot uses eval; if cardsForBotDecision provided, use it.
             if cardsForBotDecision is None:
                 cardsForBotDecision = botHand
@@ -282,7 +283,56 @@ def play_round(
             committed += toPut
 
         return actionStr, balance, committed, False
+    
+    def resolve_raise_loop(last_raiser: str):
+        """
+        After a raise, allow the other player to call/call-raise/fold.
+        Loop until someone CALLS or FOLDS.
+        Returns:
+            None if hand continues,
+            OR a finished-round tuple if someone folds.
+        """
+        nonlocal playerBalance, botBalance, pot
+        nonlocal playerCommitted, botCommitted
+        nonlocal playerActionStr, botActionStr
 
+        actor = "player" if last_raiser == "bot" else "bot"
+        other = "bot" if actor == "player" else "player"
+
+        while True:
+            # How much this actor needs to match
+            if actor == "player":
+                amountToCall = max(0, botCommitted - playerCommitted)
+                print("\n--- Your response to raise ---")
+                actionStr, playerBalance, playerCommitted, folded = _take_action(
+                    "player", amountToCall, playerBalance, playerCommitted
+                )
+                playerActionStr = actionStr
+
+                if folded:
+                    return _finish_on_fold("Player", "Bot")
+
+            else:
+                amountToCall = max(0, playerCommitted - botCommitted)
+                print("\n--- Bot responds to raise ---")
+                actionStr, botBalance, botCommitted, folded = _take_action(
+                    "bot", amountToCall, botBalance, botCommitted
+                )
+                botActionStr = actionStr
+
+                if folded:
+                    return _finish_on_fold("Bot", "Player")
+
+            # Determine what happened
+            base = actionStr.split()[0]  # CALL, RAISE, FOLD
+
+            # CALL ends the raise war
+            if base == "CALL":
+                return None
+
+            # RAISE → switch turns and continue loop
+            actor, other = other, actor
+      
     # Who acts first this street?
     if firstToAct == "player":
         # Player acts vs bot's big blind
@@ -293,13 +343,26 @@ def play_round(
         if playerFolded:
             return _finish_on_fold("Player", "Bot")
 
-        # Bot responds
-        amountToCall = max(0, playerCommitted - botCommitted)
-        botActionStr, botBalance, botCommitted, botFolded = _take_action(
-            "bot", amountToCall, botBalance, botCommitted
-        )
-        if botFolded:
-            return _finish_on_fold("Bot", "Player")
+        # * NEW * If player RAISED, hand off to raise loop to let bot respond
+        if playerActionStr.startswith("RAISE"):
+            result = resolve_raise_loop("player")
+            if result is not None:   # someone folded during the raise war
+                return result
+
+        else:
+            # Player did not raise (CALL / CHECK) -> bot takes a single normal action
+            amountToCall = max(0, playerCommitted - botCommitted)
+            botActionStr, botBalance, botCommitted, botFolded = _take_action(
+                "bot", amountToCall, botBalance, botCommitted
+            )
+            if botFolded:
+                return _finish_on_fold("Bot", "Player")
+            
+            # If bot now RAISES here, start the raise loop with bot as last raiser
+            if botActionStr.startswith("RAISE"):
+                result = resolve_raise_loop("bot")
+                if result is not None:
+                    return result
 
     else:
         # Bot acts first vs player's big blind
@@ -310,12 +373,25 @@ def play_round(
         if botFolded:
             return _finish_on_fold("Bot", "Player")
 
-        amountToCall = max(0, botCommitted - playerCommitted)
-        playerActionStr, playerBalance, playerCommitted, playerFolded = _take_action(
-            "player", amountToCall, playerBalance, playerCommitted
-        )
-        if playerFolded:
-            return _finish_on_fold("Player", "Bot")
+        # If bot RAISED, hand off to raise loop to let player respond
+        if botActionStr.startswith("RAISE"):
+            result = resolve_raise_loop("bot")
+            if result is not None:
+                return result
+        else: 
+            # Now it's player's turn (bot either called or checked)
+            amountToCall = max(0, botCommitted - playerCommitted)
+            playerActionStr, playerBalance, playerCommitted, playerFolded = _take_action(
+                "player", amountToCall, playerBalance, playerCommitted
+            )
+            if playerFolded:
+                return _finish_on_fold("Player", "Bot")
+
+        # If player RAISES here, we again enter the raise loop
+            if playerActionStr.startswith("RAISE"):
+                result = resolve_raise_loop("player")
+                if result is not None:
+                    return result
 
     print("\n--- End of Preflop Betting ---")
     _print_stacks_and_pot(playerBalance, botBalance, pot)
@@ -354,32 +430,46 @@ def play_round(
         playerBalance -= toPut
         pot += toPut
         playerCommitted += toPut
+        # NEW raise logic
+        result = resolve_raise_loop("player")
+        if result is not None:
+            return result
 
-    print("\n--- Bot turn (Flop) ---")
-    actionName, raiseAmt = botDecisionWithEval(botHand + communityCards)
-    botFlopAction = _format_action((actionName, raiseAmt))
-    print(f"Bot action: {botFlopAction}")
+    # Loop ended with CALL -> flop betting done
+        print("\n--- End of Flop Betting ---")
+        _print_stacks_and_pot(playerBalance, botBalance, pot)
 
-    if actionName == "FOLD":
-        return _finish_on_fold("Bot", "Player")
+    # NEW if player did NOT raise do we give bot a single normal action:
+    if actionName != "RAISE":
 
-    if actionName == "CALL":
-        if playerCommitted > 0:
-            toPut = min(playerCommitted, botBalance)
+        print("\n--- Bot turn (Flop) ---")
+        actionName, raiseAmt = botDecisionWithEval(botHand + communityCards)
+        botFlopAction = _format_action((actionName, raiseAmt))
+        print(f"Bot action: {botFlopAction}")
+
+        if actionName == "FOLD":
+            return _finish_on_fold("Bot", "Player")
+
+        if actionName == "CALL":
+            if playerCommitted > 0:
+                toPut = min(playerCommitted, botBalance)
+                botBalance -= toPut
+                pot += toPut
+                botCommitted += toPut
+        elif actionName == "RAISE":
+            # Bot raises on top of whatever you put in (if anything)
+            base = playerCommitted
+            extra = raiseAmt
+            toPut = min(base + extra, botBalance)
             botBalance -= toPut
             pot += toPut
             botCommitted += toPut
-    elif actionName == "RAISE":
-        # Bot raises on top of whatever you put in (if anything)
-        base = playerCommitted
-        extra = raiseAmt
-        toPut = min(base + extra, botBalance)
-        botBalance -= toPut
-        pot += toPut
-        botCommitted += toPut
-
-    print("\n--- End of Flop Betting ---")
-    _print_stacks_and_pot(playerBalance, botBalance, pot)
+            # NEW raise logic
+            result = resolve_raise_loop("bot")
+            if result is not None:
+                return result
+            print("\n--- End of Flop Betting ---")
+            _print_stacks_and_pot(playerBalance, botBalance, pot)
 
     # ------------- TURN -------------
     safe_burn(deck)
@@ -408,31 +498,46 @@ def play_round(
         playerBalance -= toPut
         pot += toPut
         playerCommitted += toPut
+         # NEW raise logic
+        result = resolve_raise_loop("player")
+        if result is not None:
+            return result
 
-    print("\n--- Bot turn (Turn) ---")
-    actionName, raiseAmt = botDecisionWithEval(botHand + communityCards)
-    botTurnAction = _format_action((actionName, raiseAmt))
-    print(f"Bot action: {botTurnAction}")
+    # Loop ended with CALL -> Turn betting done
+        print("\n--- End of Turn Betting ---")
+        _print_stacks_and_pot(playerBalance, botBalance, pot)
 
-    if actionName == "FOLD":
-        return _finish_on_fold("Bot", "Player")
+    if actionName !="RAISE":
 
-    if actionName == "CALL":
-        if playerCommitted > 0:
-            toPut = min(playerCommitted, botBalance)
+        print("\n--- Bot turn (Turn) ---")
+        actionName, raiseAmt = botDecisionWithEval(botHand + communityCards)
+        botTurnAction = _format_action((actionName, raiseAmt))
+        print(f"Bot action: {botTurnAction}")
+
+        if actionName == "FOLD":
+            return _finish_on_fold("Bot", "Player")
+
+        if actionName == "CALL":
+            if playerCommitted > 0:
+                toPut = min(playerCommitted, botBalance)
+                botBalance -= toPut
+                pot += toPut
+                botCommitted += toPut
+        elif actionName == "RAISE":
+            base = playerCommitted
+            extra = raiseAmt
+            toPut = min(base + extra, botBalance)
             botBalance -= toPut
             pot += toPut
             botCommitted += toPut
-    elif actionName == "RAISE":
-        base = playerCommitted
-        extra = raiseAmt
-        toPut = min(base + extra, botBalance)
-        botBalance -= toPut
-        pot += toPut
-        botCommitted += toPut
+            # NEW raise logic
+            result = resolve_raise_loop("bot")
+            if result is not None:
+                return result
 
-    print("\n--- End of Turn Betting ---")
-    _print_stacks_and_pot(playerBalance, botBalance, pot)
+    # Loop ended with CALL -> Turn betting done
+            print("\n--- End of Turn Betting ---")
+            _print_stacks_and_pot(playerBalance, botBalance, pot)
 
     # ------------- RIVER -------------
     safe_burn(deck)
@@ -461,31 +566,47 @@ def play_round(
         playerBalance -= toPut
         pot += toPut
         playerCommitted += toPut
+        # NEW raise logic
+        result = resolve_raise_loop("player")
+        if result is not None:
+            return result
 
-    print("\n--- Bot turn (River) ---")
-    actionName, raiseAmt = botDecisionWithEval(botHand + communityCards)
-    botRiverAction = _format_action((actionName, raiseAmt))
-    print(f"Bot action: {botRiverAction}")
+    # Loop ended with CALL -> River betting done
+        print("\n--- End of River Betting ---")
+        _print_stacks_and_pot(playerBalance, botBalance, pot)
 
-    if actionName == "FOLD":
-        return _finish_on_fold("Bot", "Player")
 
-    if actionName == "CALL":
-        if playerCommitted > 0:
-            toPut = min(playerCommitted, botBalance)
+    if actionName !="RAISE":   
+        print("\n--- Bot turn (River) ---")
+        actionName, raiseAmt = botDecisionWithEval(botHand + communityCards)
+        botRiverAction = _format_action((actionName, raiseAmt))
+        print(f"Bot action: {botRiverAction}")
+
+        if actionName == "FOLD":
+            return _finish_on_fold("Bot", "Player")
+
+        if actionName == "CALL":
+            if playerCommitted > 0:
+                toPut = min(playerCommitted, botBalance)
+                botBalance -= toPut
+                pot += toPut
+                botCommitted += toPut
+        elif actionName == "RAISE":
+            base = playerCommitted
+            extra = raiseAmt
+            toPut = min(base + extra, botBalance)
             botBalance -= toPut
             pot += toPut
             botCommitted += toPut
-    elif actionName == "RAISE":
-        base = playerCommitted
-        extra = raiseAmt
-        toPut = min(base + extra, botBalance)
-        botBalance -= toPut
-        pot += toPut
-        botCommitted += toPut
+             # NEW raise logic
+            result = resolve_raise_loop("bot")
+            if result is not None:
+                return result
 
-    print("\n--- End of River Betting ---")
-    _print_stacks_and_pot(playerBalance, botBalance, pot)
+    # Loop ended with CALL -> River betting done
+            print("\n--- End of River Betting ---")
+            _print_stacks_and_pot(playerBalance, botBalance, pot)
+
 
     # ------------- SHOWDOWN -------------
 

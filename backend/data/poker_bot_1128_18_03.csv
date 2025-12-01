@@ -1,0 +1,2 @@
+Player Hand,Bot Hand,Player Strength,Bot Strength,Player Preflop Action,Bot Preflop Action,Player Flop Action,Bot Flop Action,Player Turn Action,Bot Turn Action,Player River Action,Bot River Action,Player Balance,Winner
+"7 of Hearts, Q of Spades","4 of Hearts, 10 of Hearts",,,CALL,RAISE 75,FOLD,,,,,,915,Bot
