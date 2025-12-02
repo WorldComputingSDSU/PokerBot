@@ -1,0 +1,7 @@
+Player Hand,Bot Hand,Player Strength,Bot Strength,Player Preflop Action,Bot Preflop Action,Player Flop Action,Bot Flop Action,Player Turn Action,Bot Turn Action,Player River Action,Bot River Action,Player Balance,Winner
+"2 of Clubs, 7 of Hearts","5 of Clubs, 5 of Hearts",,,RAISE 33,FOLD,,,,,,,1010,Player
+"Q of Clubs, A of Diamonds","4 of Spades, K of Hearts",,,CALL,FOLD,,,,,,,1020,Player
+"6 of Diamonds, K of Hearts","2 of Hearts, 8 of Clubs",,,,FOLD,,,,,,,1025,Player
+"K of Diamonds, 2 of Clubs","6 of Hearts, J of Diamonds",,,RAISE 22,FOLD,,,,,,,1035,Player
+"9 of Clubs, 2 of Hearts","10 of Clubs, 10 of Diamonds",,,RAISE 22,FOLD,RAISE 22,,RAISE 22,,RAISE 22,,1111,Player
+"A of Hearts, 8 of Spades","6 of Spades, K of Spades",,,CALL,RAISE 65,RAISE 5,,CALL,FOLD,,,1292,Player
